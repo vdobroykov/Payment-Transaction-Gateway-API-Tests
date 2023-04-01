@@ -15,3 +15,4 @@ In order to run the tests script you need to have the following dependencies ins
 
 After retrieving the code from this repository navigate to the directory of the project and execute ``` python3 -m pytest -v ``` <br/>
 in the terminal. Expected result: <br/>
+![Alt text](/Docs/Images/Tests_passing.png?raw=true)
