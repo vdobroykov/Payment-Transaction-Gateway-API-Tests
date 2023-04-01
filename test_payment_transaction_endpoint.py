@@ -1,5 +1,5 @@
 import requests
-from config import config
+from config import api_settings
 import json
 
 data = {
@@ -16,13 +16,13 @@ data = {
     }
 }
 
-url = config['urlSettings']['baseUrl'] + "/payment_transactions"
-authorizationType = config['authorization']['authorizationType']
-authorizationToken = config['authorization']['authorizationToken']
+url = api_settings['urlSettings']['baseUrl'] + "/payment_transactions"
+authorizationType = api_settings['authorization']['authorizationType']
+authorizationToken = api_settings['authorization']['authorizationToken']
 
 
 # Send a valid payment transaction request and expect an approved response
-def test_valid_payment_transaction():
+def test_valid_payment_transaction_returns_success():
     response = requests.post(url,
                              headers={"Content-Type": "application/json",
                                       "Authorization": authorizationType + " " + authorizationToken},
@@ -41,7 +41,9 @@ def test_valid_payment_transaction():
 
 
 # Send a valid void transaction request and expect an approved response
-def test_valid_void_transaction():
+def test_valid_void_transaction_returns_success():
+    # In order to void transaction we generate a payment transaction to use the unique id
+    # generated from the API
     response = requests.post(url,
                              headers={"Content-Type": "application/json",
                                       "Authorization": authorizationType + " " + authorizationToken},
@@ -73,7 +75,7 @@ def test_valid_void_transaction():
 
 
 # Send a valid payment transaction with an invalid authentication and expect an appropriate response (401)
-def test_valid_payment_transaction_invalid_authentication():
+def test_valid_payment_transaction_invalid_authentication_returns_access_denied():
     response = requests.post(url,
                              headers={"Content-Type": "application/json",
                                       "Authorization": "Bearer Y29kZW1vbnN0ZXI6bXk1ZWNyZXQta2V5Mm8ybw=="},
@@ -84,7 +86,7 @@ def test_valid_payment_transaction_invalid_authentication():
 
 
 # Send a void transaction pointing to a non-existent payment transaction and expect (422)
-def test_void_transaction_non_existent_payment():
+def test_void_transaction_non_existent_payment_returns_invalid_reference():
     void_request_body = {
         "payment_transaction": {
             "reference_id": "",
@@ -107,7 +109,9 @@ def test_void_transaction_non_existent_payment():
 
 
 # Send a void transaction pointing to an existent void transaction and expect (422)
-def test_void_transaction_existent_void_transaction():
+def test_void_transaction_existent_void_transaction_returns_invalid_reference():
+    # In order to void transaction we generate a payment transaction to use the unique id
+    # generated from the API
     response = requests.post(url,
                              headers={"Content-Type": "application/json",
                                       "Authorization": authorizationType + " " + authorizationToken},
@@ -115,12 +119,15 @@ def test_void_transaction_existent_void_transaction():
     parsed_response = json.loads(response.content)
     unique_id = parsed_response["unique_id"]
 
+    # To make sure we attempt to void an existing void transaction later
+    # create a valid one voiding the payment transaction from the previous step
     void_request_body = {
         "payment_transaction": {
             "reference_id": unique_id,
             "transaction_type": "void"
         }
     }
+
     void_response = requests.post(url,
                                   headers={"Content-Type": "application/json",
                                            "Authorization": authorizationType + " " + authorizationToken},
@@ -129,6 +136,7 @@ def test_void_transaction_existent_void_transaction():
     parsed_void_response = json.loads(void_response.content)
     existent_unique_id = parsed_void_response["unique_id"]
 
+    # Attempt to void the existing void transaction from the previous step
     void_request_existent_void_transaction_body = {
         "payment_transaction": {
             "reference_id": existent_unique_id,
