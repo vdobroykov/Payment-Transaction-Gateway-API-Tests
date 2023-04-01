@@ -1,5 +1,5 @@
 import requests
-from config import api_settings
+from config import sut_settings
 import json
 
 data = {
@@ -16,9 +16,9 @@ data = {
     }
 }
 
-url = api_settings['urlSettings']['baseUrl'] + "/payment_transactions"
-authorizationType = api_settings['authorization']['authorizationType']
-authorizationToken = api_settings['authorization']['authorizationToken']
+url = sut_settings['urlSettings']['baseUrl'] + "/payment_transactions"
+authorizationType = sut_settings['authorization']['authorizationType']
+authorizationToken = sut_settings['authorization']['authorizationToken']
 
 
 # Send a valid payment transaction request and expect an approved response
