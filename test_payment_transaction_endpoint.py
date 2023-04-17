@@ -4,16 +4,15 @@ from config import sut_settings
 import json
 from requests.auth import HTTPBasicAuth
 
-url = sut_settings['urlSettings']['baseUrl'] + "/payment_transactions"
+#url = sut_settings['urlSettings']['baseUrl'] + "/payment_transactions"
 
-@pytest.mark.usefixtures("payment_transaction_payload")
 class Tests:
     # Send a valid payment transaction request and expect an approved response
-    def test_valid_payment_transaction_returns_success(self, username, password, payment_transaction_payload):
-        response = requests.post(url,
+    def test_valid_payment_transaction_returns_success(self, username, password, config_data_load):
+        response = requests.post(config_data_load.url,
                                  auth=HTTPBasicAuth(username, password),
                                  headers={"Content-Type": "application/json"},
-                                 json=payment_transaction_payload)
+                                 json=config_data_load.payment_transaction_payload)
 
         assert response.status_code == 200
 
@@ -28,13 +27,13 @@ class Tests:
 
 
     # Send a valid void transaction request and expect an approved response
-    def test_valid_void_transaction_returns_success(self, username, password, payment_transaction_payload):
+    def test_valid_void_transaction_returns_success(self, username, password, config_data_load):
         # In order to void transaction we generate a payment transaction to use the unique id
         # generated from the API
-        response = requests.post(url,
+        response = requests.post(config_data_load.url,
                                  auth=HTTPBasicAuth(username, password),
                                  headers={"Content-Type": "application/json"},
-                                 json=payment_transaction_payload)
+                                 json=config_data_load.payment_transaction_payload)
         parsed_response = json.loads(response.content)
         unique_id = parsed_response["unique_id"]
 
@@ -44,7 +43,7 @@ class Tests:
                 "transaction_type": "void"
             }
         }
-        void_response = requests.post(url,
+        void_response = requests.post(config_data_load.url,
                                       auth=HTTPBasicAuth(username, password),
                                       headers={"Content-Type": "application/json"},
                                       json=void_request_body)
@@ -62,8 +61,8 @@ class Tests:
 
 
     # Send a valid payment transaction with an invalid authentication and expect an appropriate response (401)
-    def test_valid_payment_transaction_invalid_authentication_returns_access_denied(self):
-        response = requests.post(url,
+    def test_valid_payment_transaction_invalid_authentication_returns_access_denied(self, config_data_load):
+        response = requests.post(config_data_load.url,
                                  headers={"Content-Type": "application/json",
                                           "Authorization": "Bearer Y29kZW1vbnN0ZXI6bXk1ZWNyZXQta2V5Mm8ybw=="})
 
@@ -72,14 +71,14 @@ class Tests:
 
 
     # Send a void transaction pointing to a non-existent payment transaction and expect (422)
-    def test_void_transaction_non_existent_payment_returns_invalid_reference(self, username, password):
+    def test_void_transaction_non_existent_payment_returns_invalid_reference(self, username, password, config_data_load):
         void_request_body = {
             "payment_transaction": {
                 "reference_id": "",
                 "transaction_type": "void"
             }
         }
-        void_response = requests.post(url,
+        void_response = requests.post(config_data_load.url,
                                       auth=HTTPBasicAuth(username, password),
                                       headers={"Content-Type": "application/json"},
                                       json=void_request_body)
@@ -95,13 +94,13 @@ class Tests:
 
 
     # Send a void transaction pointing to an existent void transaction and expect (422)
-    def test_void_transaction_existent_void_transaction_returns_invalid_reference(self, username, password, payment_transaction_payload):
+    def test_void_transaction_existent_void_transaction_returns_invalid_reference(self, username, password, config_data_load):
         # In order to void transaction we generate a payment transaction to use the unique id
         # generated from the API
-        response = requests.post(url,
+        response = requests.post(config_data_load.url,
                                  auth=HTTPBasicAuth(username, password),
                                  headers={"Content-Type": "application/json"},
-                                 json=payment_transaction_payload)
+                                 json=config_data_load.payment_transaction_payload)
         parsed_response = json.loads(response.content)
         unique_id = parsed_response["unique_id"]
 
@@ -114,7 +113,7 @@ class Tests:
             }
         }
 
-        void_response = requests.post(url,
+        void_response = requests.post(config_data_load.url,
                                       auth=HTTPBasicAuth(username, password),
                                       headers={"Content-Type": "application/json"},
                                       json=void_request_body)
@@ -129,7 +128,7 @@ class Tests:
                 "transaction_type": "void"
             }
         }
-        void_response_existent_void_transaction = requests.post(url,
+        void_response_existent_void_transaction = requests.post(config_data_load.url,
                                                                 auth=HTTPBasicAuth(username, password),
                                                                 headers={"Content-Type": "application/json"},
                                                                 json=void_request_existent_void_transaction_body)
