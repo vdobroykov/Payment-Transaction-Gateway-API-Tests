@@ -13,6 +13,10 @@ In order to run the tests script you need to have the following dependencies ins
 * pytest 7.2.2 - can be installed by executing ``` sudo apt-get install python3-pytest ``` in the terminal
 * requests 2.28.2 - can be installed by executing ``` sudo apt-get install python3-requests ``` in the terminal
 
-After retrieving the code from this repository navigate to the directory of the project and execute ``` python3 -m pytest -v ``` <br/>
-in the terminal. Expected result: <br/>
-![Alt text](/Docs/Images/Tests_passing.png?raw=true)
+After retrieving the code from this repository navigate to the directory of the project and execute <br/>
+``` python3 -m pytest -v --username <api-username> --password <api-password> ``` in the terminal. Username and password are required arguments. <br/>
+
+Expected result:
+![Alt text](/Docs/Images/tests_pass.png?raw=true)
+
+If you do not pass the ``` --base_url ``` argument, the test app uses "http://localhost:3001" as default value for base url of the system under test.
